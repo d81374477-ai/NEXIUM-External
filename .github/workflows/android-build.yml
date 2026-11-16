@@ -1,0 +1,31 @@
+name: Build NEXIUM APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Download project
+        uses: actions/checkout@v4
+
+      - name: Install Java and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk python3-pip zip unzip
+          python3 -m pip install --user --break-system-packages buildozer cython==0.29.36
+
+      - name: Build APK
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXIUM-External-v1.1.0-debug-apk
+          path: bin/*.apk
