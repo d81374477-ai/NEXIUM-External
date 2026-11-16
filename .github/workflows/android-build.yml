@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-17-jdk python3-pip zip unzip
-          python3 -m pip install --user --break-system-packages buildozer cython==0.29.36
+          python3 -m pip install --user buildozer cython==0.29.36
 
       - name: Build APK
         run: |
