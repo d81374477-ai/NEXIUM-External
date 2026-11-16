@@ -20,9 +20,20 @@ jobs:
           sudo apt-get install -y openjdk-17-jdk python3-pip zip unzip
           python3 -m pip install --user buildozer cython==0.29.36
 
-      - name: Accept Android SDK licenses
+      - name: Prepare Android SDK
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          mkdir -p "$HOME/.buildozer/android/platform"
+          yes | python3 -m pip --version
+          export PATH="$HOME/.local/bin:$PATH"
+          buildozer android debug || true
+          SDK="$HOME/.buildozer/android/platform/android-sdk"
+          if [ -d "$SDK/cmdline-tools/latest/bin" ]; then
+            yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" --licenses
+            "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" "build-tools;37.0.0"
+          else
+            echo "Android SDK command-line tools not found"
+            exit 1
+          fi
 
       - name: Build APK
         run: |
