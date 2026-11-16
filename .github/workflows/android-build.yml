@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Download project
         uses: actions/checkout@v4
@@ -22,22 +26,18 @@ jobs:
 
       - name: Prepare Android SDK
         run: |
-          mkdir -p "$HOME/.buildozer/android/platform"
-          yes | python3 -m pip --version
-          export PATH="$HOME/.local/bin:$PATH"
-          buildozer android debug || true
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
-          if [ -d "$SDK/cmdline-tools/latest/bin" ]; then
-            yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" --licenses
-            "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" "build-tools;37.0.0"
-          else
-            echo "Android SDK command-line tools not found"
-            exit 1
-          fi
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          mkdir -p cmdline-tools
+          unzip -q commandlinetools-linux-11076708_latest.zip -d cmdline-tools
+          mv cmdline-tools/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;37.0.0"
 
       - name: Build APK
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
+          export PATH="$HOME/.local/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
           buildozer android debug
 
       - name: Upload APK
