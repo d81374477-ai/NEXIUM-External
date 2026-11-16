@@ -1,3 +1,4 @@
+
 name: Build NEXIUM APK
 
 on:
@@ -18,6 +19,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-17-jdk python3-pip zip unzip
           python3 -m pip install --user buildozer cython==0.29.36
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
 
       - name: Build APK
         run: |
