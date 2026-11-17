@@ -10,35 +10,27 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
     steps:
       - name: Download project
         uses: actions/checkout@v4
 
       - name: Install Java and dependencies
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Buildozer
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-17-jdk python3-pip zip unzip
+          sudo apt-get install -y python3-pip zip unzip
           python3 -m pip install --user buildozer cython==0.29.36
-
-      - name: Prepare Android SDK
-        run: |
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          cd /tmp
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          mkdir -p cmdline-tools
-          unzip -q commandlinetools-linux-11076708_latest.zip -d cmdline-tools
-          mv cmdline-tools/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;37.0.0"
 
       - name: Build APK
         run: |
-          export PATH="$HOME/.local/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
-          buildozer android debug
+          export PATH="$HOME/.local/bin:$PATH"
+          set -o pipefail
+          yes | buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
